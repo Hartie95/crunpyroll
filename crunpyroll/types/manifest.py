@@ -4,6 +4,7 @@ from crunpyroll.types import SubtitlesStream
 from ..utils import (
     WIDEVINE_UUID,
     PLAYREADY_UUID,
+    SHARED_UUID,
     parse_segments
 )
 
@@ -53,22 +54,38 @@ class Manifest(Object):
         for aset in manifest["MPD"]["Period"]["AdaptationSet"]:
             if "SegmentTemplate" in aset:
                 template = aset["SegmentTemplate"]
+                shared_key_id = None
+                for drm in aset["ContentProtection"]:
+                    scheme_id_uri = drm["@schemeIdUri"]
+                    if scheme_id_uri == SHARED_UUID:
+                        shared_key_id = drm["@cenc:default_KID"]
                 for drm in aset["ContentProtection"]:
                     scheme_id_uri = drm["@schemeIdUri"]
                     if scheme_id_uri == WIDEVINE_UUID:
                         data["content_protection"]["widevine"] = {}
                         data["content_protection"]["widevine"]["pssh"] = drm["cenc:pssh"]
-                        data["content_protection"]["widevine"]["key_id"] = drm["@cenc:default_KID"]
+                        if "@cenc:default_KID" in drm:
+                          data["content_protection"]["widevine"]["key_id"] = drm["@cenc:default_KID"]
+                        elif shared_key_id:
+                            data["content_protection"]["widevine"]["key_id"] = shared_key_id
                     if scheme_id_uri == PLAYREADY_UUID:
                         data["content_protection"]["playready"] = {}
                         data["content_protection"]["playready"]["pssh"] = drm["mspr:pro"]
                 for repr in aset["Representation"]:
-                    if repr.get("@mimeType").startswith("video"):
-                        stream = ManifestVideoStream.parse(repr, template)
-                        data["video_streams"].append(stream)
-                    elif repr.get("@mimeType").startswith("audio"):
-                        stream = ManifestAudioStream.parse(repr, template)
-                    data["audio_streams"].append(stream)
+                    if "@mimeType" in repr:
+                        if repr.get("@mimeType").startswith("video"):
+                            stream = ManifestVideoStream.parse(repr, template)
+                            data["video_streams"].append(stream)
+                        elif repr.get("@mimeType").startswith("audio"):
+                            stream = ManifestAudioStream.parse(repr, template)
+                        data["audio_streams"].append(stream)
+                    else:
+                        if repr.get("@id").startswith("video"):
+                            stream = ManifestVideoStream.parse(repr, template)
+                            data["video_streams"].append(stream)
+                        elif repr.get("@id").startswith("audio"):
+                            stream = ManifestAudioStream.parse(repr, template)
+                        data["audio_streams"].append(stream)
             else:
                 mimeType = aset.get("@mimeType")
                 if mimeType.startswith("text/vtt"):
