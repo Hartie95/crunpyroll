@@ -35,7 +35,10 @@ class ObjectsQuery(Object):
             return Series.parse(item)
         if item_type == ContentType.SEASON.value:
             item['season_metadata']['series_id'] = item['season_metadata']['identifier'].split('|')[0]
-            item['season_metadata']['season_number'] = int(item['season_metadata']['season_display_number'])
+            if item['season_metadata']['season_display_number']:
+                item['season_metadata']['season_number'] = int(item['season_metadata']['season_display_number'])
+            else:
+                item['season_metadata']['season_number'] = int(item['season_metadata']['season_sequence_number'])
             return Season.parse(item)
         if item_type == ContentType.EPISODE.value: return Episode.parse(item)
         if item_type == ContentType.MOVIE.value: return Movie.parse(item)
