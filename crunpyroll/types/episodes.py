@@ -3,6 +3,7 @@ from curses.ascii import isdigit
 from .obj import Object
 from .content import Content
 from .images import Images
+from .versions import Version
 
 from ..utils import str_to_date
 
@@ -169,6 +170,7 @@ class Episode(Content):
         self.is_subbed: bool = data.get("is_subbed")
         self.is_dubbed: bool = data.get("is_dubbed")
         self.is_mature: bool = data.get("is_mature")
+        self.versions: Optional[List[Version]] = [Version(v) for v in data["versions"]] if "versions" in data else None
     
     @classmethod
     def parse(cls, obj: Dict):
