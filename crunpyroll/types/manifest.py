@@ -58,7 +58,7 @@ class Manifest(Object):
                 for drm in aset["ContentProtection"]:
                     scheme_id_uri = drm["@schemeIdUri"]
                     if scheme_id_uri == SHARED_UUID:
-                        shared_key_id = drm["@cenc:default_KID"]
+                        shared_key_id = drm.get("@cenc:default_KID")
                 for drm in aset["ContentProtection"]:
                     scheme_id_uri = drm["@schemeIdUri"]
                     if scheme_id_uri == WIDEVINE_UUID:
