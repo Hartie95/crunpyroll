@@ -27,7 +27,7 @@ class GetStreams:
         await self.session.retrieve()
         response = await self.api_request(
             method="GET",
-            endpoint="v1/" + media_id + "/tv/vidaa/play",
+            endpoint="playback/v3/" + media_id + "/web/firefox/play",
             params={
                 "locale": locale or self.locale,
                 "queue": False
