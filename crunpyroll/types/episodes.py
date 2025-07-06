@@ -170,7 +170,10 @@ class Episode(Content):
         self.is_subbed: bool = data.get("is_subbed")
         self.is_dubbed: bool = data.get("is_dubbed")
         self.is_mature: bool = data.get("is_mature")
-        self.versions: Optional[List[Version]] = [Version(v) for v in data["versions"]] if "versions" in data else None
+        if data.get("versions"):
+            self.versions: Optional[List[Version]] = [Version(v) for v in data["versions"]]
+        else:
+            self.versions: Optional[List[Version]] = None
     
     @classmethod
     def parse(cls, obj: Dict):
