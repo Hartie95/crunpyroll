@@ -21,6 +21,21 @@ def get_api_headers(headers: Optional[Dict]) -> Dict:
         "User-Agent": f"Crunchyroll/4.77.3 (bundle_identifier:com.crunchyroll.iphone; build_number:4148147.285670380) iOS/18.3.2 Gravity/4.77.3",
     } | (headers or {})
 
+def parse_segment(segments, segment, start_number, base_url, template, representation_id):
+    repeat = int(segment.get("@r", 0)) + 1
+    duration = int(segment.get("@d"))
+    time += repeat * duration
+    for _ in range(repeat):
+        number = start_number + len(segments) - 1
+        segment_url = format_segment_url(
+            url=base_url + template["@media"],
+            obj={
+                "Number": str(number),
+                "RepresentationID": representation_id
+            }
+        )
+        segments.append(segment_url)
+
 def parse_segments(repr: Dict, template: Dict) -> List[str]:
     time = 0
     segments = []
@@ -32,20 +47,12 @@ def parse_segments(repr: Dict, template: Dict) -> List[str]:
         obj={"RepresentationID": representation_id}
     )
     segments.append(initialization_url)
-    for segment in template["SegmentTimeline"]["S"]:
-        repeat = int(segment.get("@r", 0)) + 1
-        duration = int(segment.get("@d"))
-        time += repeat * duration
-        for _ in range(repeat):
-            number = start_number + len(segments) - 1
-            segment_url = format_segment_url(
-                url=base_url + template["@media"],
-                obj={
-                    "Number": str(number),
-                    "RepresentationID": representation_id
-                }
-            )
-            segments.append(segment_url)
+    segment_timeline = template["SegmentTimeline"]["S"]
+    if segment_timeline is List:
+        for segment in template["SegmentTimeline"]["S"]:
+            parse_segment(segments, segment, start_number, base_url, template, representation_id)
+    elif segment_timeline is Dict:
+        parse_segment(segments, segment_timeline, start_number, base_url, template, representation_id)
     return segments
 
 def format_segment_url(url: str, obj: Dict) -> str:
