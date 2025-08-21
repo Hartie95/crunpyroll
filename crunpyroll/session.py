@@ -38,6 +38,7 @@ class Session:
             await self.refresh()
 
     async def get_public_token(self) -> Optional[str]:
+        return "Ym1icmt4eXgzZDd1NmpzZnlsYTQ6QUlONEQ1VkVfY3Awd1Z6Zk5vUDBZcUhVcllGcDloU2c="
         # 1. 修正API地址拼写错误
         api_url = "https://static.crunchyroll.com/vilos-v2/web/vilos/js/bundle.js"
 
