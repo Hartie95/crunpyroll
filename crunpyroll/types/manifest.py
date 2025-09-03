@@ -78,14 +78,14 @@ class Manifest(Object):
                             data["video_streams"].append(stream)
                         elif repr.get("@mimeType").startswith("audio"):
                             stream = ManifestAudioStream.parse(repr, template)
-                        data["audio_streams"].append(stream)
+                            data["audio_streams"].append(stream)
                     else:
                         if repr.get("@id").startswith("video"):
                             stream = ManifestVideoStream.parse(repr, template)
                             data["video_streams"].append(stream)
                         elif repr.get("@id").startswith("audio"):
                             stream = ManifestAudioStream.parse(repr, template)
-                        data["audio_streams"].append(stream)
+                            data["audio_streams"].append(stream)
             else:
                 mimeType = aset.get("@mimeType") or aset.get("@mime_Type") or aset.get("@mime_type")
                 if mimeType.startswith("text/vtt"):
