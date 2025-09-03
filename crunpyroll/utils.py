@@ -3,6 +3,7 @@ from datetime import datetime
 from uuid import uuid4
 
 PUBLIC_TOKEN = "Ym1icmt4eXgzZDd1NmpzZnlsYTQ6QUlONEQ1VkVfY3Awd1Z6Zk5vUDBZcUhVcllGcDloU2c="
+USER_AGENT = 'Crunchyroll/ANDROIDTV/3.42.1_22267 (Android 16; en-US; sdk_gphone64_x86_64)'
 
 APP_VERSION = "3.59.0"
 
@@ -18,7 +19,7 @@ def get_api_headers(headers: Optional[Dict]) -> Dict:
     return {
         "Connection": "Keep-Alive",
         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-        "User-Agent": f"Crunchyroll/ANDROIDTV/3.42.1_22267 (Android 16; en-US; sdk_gphone64_x86_64)",
+        "User-Agent": f"{USER_AGENT}",
     } | (headers or {})
 
 def parse_segment(segments, segment, start_number, base_url, template, representation_id):

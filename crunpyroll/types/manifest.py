@@ -87,7 +87,7 @@ class Manifest(Object):
                             stream = ManifestAudioStream.parse(repr, template)
                         data["audio_streams"].append(stream)
             else:
-                mimeType = aset.get("@mimeType")
+                mimeType = aset.get("@mimeType") or aset.get("@mime_Type") or aset.get("@mime_type")
                 if mimeType.startswith("text/vtt"):
                     repr = aset["Representation"]
                     stream = SubtitlesStream(dict(format='vtt', language=aset["@lang"], url=repr["BaseURL"]))

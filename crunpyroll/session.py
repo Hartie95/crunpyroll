@@ -2,7 +2,7 @@ import base64
 import re
 from datetime import datetime, timedelta
 from .utils import (
-    get_date,get_api_headers
+    PUBLIC_TOKEN, USER_AGENT,get_date,get_api_headers
 )
 
 from .errors import ClientNotAuthorized
@@ -28,7 +28,10 @@ class Session:
     
     @property
     def authorization_header(self):
-        return {"Authorization": f"Bearer {self.access_token}","User-Agent":'Crunchyroll/4.77.3 (bundle_identifier:com.crunchyroll.iphone; build_number:4148147.285670380) iOS/18.3.2 Gravity/4.77.3'}
+        return {"Authorization": f"Bearer {self.access_token}",
+                "User-Agent":f"{USER_AGENT}",
+                "Cookie":f'etp_rt={self.refresh_token}'
+                }
     
     async def retrieve(self) -> None:
         if not self.is_authorized:
@@ -38,7 +41,7 @@ class Session:
             await self.refresh()
 
     async def get_public_token(self) -> Optional[str]:
-        return "Ym1icmt4eXgzZDd1NmpzZnlsYTQ6QUlONEQ1VkVfY3Awd1Z6Zk5vUDBZcUhVcllGcDloU2c="
+        return PUBLIC_TOKEN
         # 1. 修正API地址拼写错误
         api_url = "https://static.crunchyroll.com/vilos-v2/web/vilos/js/bundle.js"
 
