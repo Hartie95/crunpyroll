@@ -103,6 +103,7 @@ class Client(Object, Methods):
         headers: Dict = None,
         payload: Dict = None,
         include_session: bool = True,
+        allow_refresh_on_401: bool = True,
     ) -> Optional[Dict]:
         if not url:
             url = "https://" + host.value + "/" + endpoint
