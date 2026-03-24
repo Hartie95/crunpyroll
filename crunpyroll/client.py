@@ -116,13 +116,27 @@ class Client(Object, Methods):
             headers=api_headers,
             data=payload
         )
-        if response.status_code == 401:
+
+        should_try_refresh = (
+            response.status_code == 401
+            and allow_refresh_on_401
+            and include_session
+            and endpoint != "auth/v1/token"
+            and self.session.is_authorized
+        )
+
+        if should_try_refresh:
             await self.session.refresh()
+
+            refreshed_headers = get_api_headers(headers)
+            if self.session.is_authorized:
+                refreshed_headers.update(self.session.authorization_header)
+
             response = await self.http.request(
                 method=method,
                 url=url,
                 params=params,
-                headers=api_headers,
+                headers=refreshed_headers,
                 data=payload
             )
         return Client.parse_response(response, method=method)
