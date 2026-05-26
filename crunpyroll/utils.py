@@ -2,8 +2,8 @@ from typing import Optional, List, Dict
 from datetime import datetime
 from uuid import uuid4
 
-PUBLIC_TOKEN = "eTJhcnZqYjBoMHJndnRpemxvdnk6SlZMdndkSXBYdnhVLXFJQnZUMU04b1FUcjFxbFFKWDI="
-USER_AGENT = 'Crunchyroll/ANDROIDTV/3.59.0_22338 (Android 16; en-US; sdk_gphone64_x86_64)'
+PUBLIC_TOKEN = "bm1oaGcwbDZ4eXhjZm02aHQ2aGY6SjR6bU1mdjNkMVFkWHk4dDk2d1NjeDdoUnkzclBHLTM="
+USER_AGENT = 'Crunchyroll/ANDROIDTV/3.61.0_22341 (Android 16; en-US; sdk_gphone64_x86_64)'
 
 APP_VERSION = "3.59.0"
 
