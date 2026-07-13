@@ -2,10 +2,8 @@ from .obj import Object
 from .drm import ContentProtection
 from crunpyroll.types import SubtitlesStream
 from ..utils import (
-    WIDEVINE_UUID,
-    PLAYREADY_UUID,
-    SHARED_UUID,
-    parse_segments
+    parse_segments,
+    parseProtectionBlock
 )
 
 from typing import List, Dict
@@ -52,46 +50,38 @@ class Manifest(Object):
         data["content_protection"] = {}
         manifest = xmltodict.parse(obj)
         for aset in manifest["MPD"]["Period"]["AdaptationSet"]:
+            template = None
+            ## some streams, like "GR09CXQMJ" don't have a Segment template, so we need to handle it as optional
             if "SegmentTemplate" in aset:
                 template = aset["SegmentTemplate"]
-                shared_key_id = None
-                for drm in aset["ContentProtection"]:
-                    scheme_id_uri = drm["@schemeIdUri"]
-                    if scheme_id_uri == SHARED_UUID:
-                        shared_key_id = drm.get("@cenc:default_KID")
-                for drm in aset["ContentProtection"]:
-                    scheme_id_uri = drm["@schemeIdUri"]
-                    if scheme_id_uri == WIDEVINE_UUID:
-                        data["content_protection"]["widevine"] = {}
-                        data["content_protection"]["widevine"]["pssh"] = drm["cenc:pssh"]
-                        if "@cenc:default_KID" in drm:
-                          data["content_protection"]["widevine"]["key_id"] = drm["@cenc:default_KID"]
-                        elif shared_key_id:
-                            data["content_protection"]["widevine"]["key_id"] = shared_key_id
-                    if scheme_id_uri == PLAYREADY_UUID:
-                        data["content_protection"]["playready"] = {}
-                        data["content_protection"]["playready"]["pssh"] = drm["mspr:pro"]
-                for repr in aset["Representation"]:
-                    if "@mimeType" in repr:
-                        if repr.get("@mimeType").startswith("video"):
-                            stream = ManifestVideoStream.parse(repr, template)
-                            data["video_streams"].append(stream)
-                        elif repr.get("@mimeType").startswith("audio"):
-                            stream = ManifestAudioStream.parse(repr, template)
-                        data["audio_streams"].append(stream)
-                    else:
-                        if repr.get("@id").startswith("video"):
-                            stream = ManifestVideoStream.parse(repr, template)
-                            data["video_streams"].append(stream)
-                        elif repr.get("@id").startswith("audio"):
-                            stream = ManifestAudioStream.parse(repr, template)
-                        data["audio_streams"].append(stream)
-            else:
-                mimeType = aset.get("@mimeType") or aset.get("@mime_Type") or aset.get("@mime_type")
+
+            global_protection = parseProtectionBlock(aset)
+            if global_protection is not None:
+                data["content_protection"] = global_protection
+
+            mimeType = aset.get("@mimeType") or aset.get("@mime_Type") or aset.get("@mime_type")
+
+            # in some cases it might not be a dict, but a single element
+            representations = aset["Representation"]
+            for repr in representations if isinstance(representations, list) else [representations]:
                 if mimeType.startswith("text/vtt"):
                     repr = aset["Representation"]
                     stream = SubtitlesStream(dict(format='vtt', language=aset["@lang"], url=repr["BaseURL"]))
                     data["subs_streams"].append(stream)
+                elif mimeType.startswith("audio/"):
+                    stream = ManifestAudioStream.parse(repr, template)
+                    data["audio_streams"].append(stream)
+                elif mimeType.startswith("video/"):
+                    stream = ManifestVideoStream.parse(repr, template)
+                    data["video_streams"].append(stream)
+                    data["audio_streams"].append(stream)
+
+                # some streams, like "GR09CXQMJ", have one per representation, not a more global protection area
+                # todo? maybe support per stream protections
+                repr_protection = parseProtectionBlock(repr)
+                if repr_protection is not None:
+                    data["content_protection"] = repr_protection
+
         return cls(data)
 
 
@@ -124,7 +114,7 @@ class ManifestVideoStream(Object):
         self.segments: List[str] = data.get("segments")
 
     @classmethod
-    def parse(cls, obj: Dict, template: Dict):
+    def parse(cls, obj: Dict, template: Dict = None):
         data = {}
         data["codecs"] = obj["@codecs"]
         data["width"] = int(obj["@width"])
